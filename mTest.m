@@ -1,5 +1,5 @@
 BeginPackage["mTest`"];
-licenseText =
+mTestLicenseText =
 "MIT License
 
 Copyright (c) 2018 George Dadunashvili
@@ -39,6 +39,8 @@ printFailed::usage = "Given a list of True's & False's, print the position of
 dotPrint::usage = "print dot for True and F for False.";
 allTrueTest::usage = "If all test results are true print all passed else print
 which failed.";
+formatedTest::usage = "ToDo."; (* ToDo *)
+br::usage = "ToDo."; (* ToDo *)
 
 Begin["Private`"]
 
@@ -61,12 +63,19 @@ colorPrint =
     Function[{test},
       Print[If[test, b<>green<>"passed"<>cl, b<>red<>"failed"<>cl]]];
 
-
+Module[{failedTests, nAll, nFailed},
 printFailed =
   Function[{testList},
-   Do[If[testList[[i]], None,
-     Print["test " <> ToString[i] <> ": ",
-      red<>"Failed"<>cl]], {i, Length[testList]}]];
+    failedTests = Flatten@Position[testList, False];
+    nAll = Length[testList];
+    nFailed= Length[failedTests];
+    Print[ToString[nFailed]<>" test(s) out of "<>
+        ToString[nAll]<>red<>" failed"<>cl];
+    If[nFailed == 0, None,
+    If[nFailed == 1, Print["failed test: ", failedTests[[1]]],
+      Print["failed test(s): ", failedTests]]];
+  ];
+];
 
 dotPrint = Function[{testList},
    Block[{fStr = testList /. {True -> b<>green<>".", False -> red<>"F"}},
@@ -76,10 +85,31 @@ allTrueTest =
   Function[{allTests},
    Block[{allPassed = AllTrue[TrueQ]@allTests,
           allFailed = AllTrue[Not@TrueQ[#]&]@allTests},
-     Print[allFailed]
      If[allPassed, Print[b<>green<>"all tests passed"<>cl],
-       If[allFailed, Print[b<>red<>"all tests failed"<>cl],
-       printFailed[allTests]]]]];
+       If[allFailed, Print[b<>red<>"all tests failed"<>cl], printFailed[allTests]]
+     ]
+   ]];
+
+br = StringJoin@Table[ToString[#1], #2]&;
+
+formatedTest[testName_String, functionResultPairList_] :=
+    Module[{header, lh},
+      header =
+          "Performing "<> b <> testName <> cl <>" test ";
+          lh = Length[Characters@header] - 2Length[Characters@b];
+
+      Print[br["~", lh]];
+      Print[br["~", lh]];
+      Print[header];
+      Print[br["=", Round@(2/3 * lh)]];
+
+      Do[
+        Print[b<>ToString@pair[[1]]<>cl];
+        allTrueTest[pair[[2]]];
+        Print[br["-", Round@(2/3 * lh)]],
+        {pair, functionResultPairList}
+      ];
+    ];
 
 End[];
 EndPackage[];
